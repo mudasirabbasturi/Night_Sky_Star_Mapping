@@ -1,3 +1,42 @@
 * {
   box-sizing: border-box;
+}
+
+body {
+  padding: 0;
+  margin: 0;
+}
+
+.star_editor {
+  width: 100%;
+  overflow: hidden;
+}
+.star_editor .wrapper {
+  height: 100vh;
+  display: flex;
+}
+.star_editor .wrapper .main {
+  flex-grow: 1;
+  background-color: #e0e0e0;
+  position: relative;
+}
+.star_editor .wrapper .main .map_box {
+  position: absolute;
+  width: 50%;
+  height: 65%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+}
+.star_editor .wrapper .main .map_box .map {
+  border: 1px solid #000000;
+}
+.star_editor .wrapper .sidebar {
+  min-width: 420px;
+  max-width: 420px;
+  background-color: #fff;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }/*# sourceMappingURL=style.css.map */

@@ -1,16 +1,571 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Star Mapping.</title>
+    <script type="text/javascript" src="js/d3.min.js"></script>
+    <script type="text/javascript" src="js/d3.geo.projection.min.js"></script>
+    <script type="text/javascript" src="js/celestial.min.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="star_editor">
         <div class="wrapper">
-            <div class="main">Main</div>
-            <div class="sidebar">Sidebar</div>
+            <div class="main">
+                <div class="map_box">
+                    <div class="map">
+                        <div id="celestial-map"></div>
+                    </div>
+                    <div class="text">footer</div>
+                </div>
+            </div>
+            <div class="sidebar">
+                <form id="params" name="params" method="get" action="#">
+                    <div id="loc">
+                        <div class="col" id="location" style="display: inline-block;"><label
+                                title="Location coordinates long/lat" for="lat">Location</label><input type="number"
+                                id="lat" title="Latitude" placeholder="Latitude" max="90" min="-90" step="0.0001"
+                                value="0"><span>°</span><input type="number" id="lon" title="Longitude"
+                                placeholder="Longitude" max="180" min="-180" step="0.0001"
+                                value="0"><span>°</span><input type="button" value="Here" id="here"><label
+                                title="Local date/time" for="datetime"> Date/time</label><input type="button"
+                                id="day-left" title="One day back"><input type="text" id="datetime"
+                                title="Date and time" value="2023-07-15 16:16:55 +0500">
+                            <div id="datepick"></div><input type="button" id="day-right" title="One day forward"><input
+                                type="button" value="Now" id="now"><br><label title="Show horizon marker"
+                                for="horizon-show" style="color: rgb(153, 153, 153);"> Horizon marker</label><input
+                                type="checkbox" id="horizon-show" style="color: rgb(153, 153, 153);" disabled=""><label
+                                title="Show daylight" for="daylight-show" style="color: rgb(0, 0, 0);">Daylight
+                                sky</label><input type="checkbox" id="daylight-show"
+                                style="color: rgb(0, 0, 0);"><br><label title="Show solar system objects"
+                                for="planets-show"> Planets, Sun &amp; Moon</label><input type="checkbox"
+                                id="planets-show"><label for="planets-symbolType">as</label><label
+                                title="Type of planet name" for="planets-symbolType" class="advanced"
+                                style="color: rgb(153, 153, 153); display: inline-block;"></label><select
+                                id="planets-symbolType" disabled="" style="color: rgb(153, 153, 153);">
+                                <option value="symbol">☾ Symbol</option>
+                                <option value="letter">Ⅼ Letter</option>
+                                <option value="disk">● Disk</option>
+                            </select><label for="planets-namesType">with</label><label title="Type of planet name"
+                                for="planets-namesType" class="advanced"
+                                style="color: rgb(153, 153, 153); display: inline-block;"></label><select
+                                id="planets-namesType" class="advanced" disabled=""
+                                style="color: rgb(153, 153, 153); display: inline-block;">
+                                <option value="desig">Designation</option>
+                                <option value="ar">Arabic</option>
+                                <option value="zh">Chinese</option>
+                                <option value="en">English</option>
+                                <option value="fr">French</option>
+                                <option value="de">German</option>
+                                <option value="el">Greek</option>
+                                <option value="he">Hebrew</option>
+                                <option value="hi">Hindi</option>
+                                <option value="it">Italian</option>
+                                <option value="ja">Japanese</option>
+                                <option value="ko">Korean</option>
+                                <option value="la">Latin</option>
+                                <option value="fa">Persian</option>
+                                <option value="ru">Russian</option>
+                                <option value="es">Spanish</option>
+                            </select><label for="planets-names" style="color: rgb(153, 153, 153);">names</label><input
+                                type="checkbox" id="planets-names" disabled="" style="color: rgb(153, 153, 153);">
+                        </div>
+                    </div>
+                    <div class="col" id="general" style="display: block;"><label
+                            title="Map width in pixel, 0 indicates full width" for="width">Width </label><input
+                            type="number" maxlength="4" max="20000" min="0" title="Map width" id="width"
+                            value="0"><span>px</span><label
+                            title="Map projection, (hemi) indicates hemispherical projection"
+                            for="projection">Projection</label><select id="projection">
+                            <option value="airy">Airy’s Minimum Error (hemi)</option>
+                            <option value="aitoff">Aitoff</option>
+                            <option value="armadillo">Armadillo</option>
+                            <option value="august">August</option>
+                            <option value="azimuthalEqualArea">Azimuthal Equal Area (hemi)</option>
+                            <option value="azimuthalEquidistant">Azimuthal Equidistant (hemi)</option>
+                            <option value="baker">Baker Dinomic</option>
+                            <option value="berghaus">Berghaus Star (hemi)</option>
+                            <option value="boggs">Boggs Eumorphic</option>
+                            <option value="bonne">Bonne</option>
+                            <option value="bromley">Bromley</option>
+                            <option value="cassini">Cassini (hemi)</option>
+                            <option value="collignon">Collignon</option>
+                            <option value="craig">Craig Retroazimuthal (hemi)</option>
+                            <option value="craster">Craster Parabolic</option>
+                            <option value="cylindricalEqualArea">Cylindrical Equal Area</option>
+                            <option value="cylindricalStereographic">Cylindrical Stereographic</option>
+                            <option value="eckert1">Eckert I</option>
+                            <option value="eckert2">Eckert II</option>
+                            <option value="eckert3">Eckert III</option>
+                            <option value="eckert4">Eckert IV</option>
+                            <option value="eckert5">Eckert V</option>
+                            <option value="eckert6">Eckert VI</option>
+                            <option value="eisenlohr">Eisenlohr</option>
+                            <option value="equirectangular">Equirectangular</option>
+                            <option value="fahey">Fahey</option>
+                            <option value="mtFlatPolarParabolic">Flat Polar Parabolic</option>
+                            <option value="mtFlatPolarQuartic">Flat Polar Quartic</option>
+                            <option value="mtFlatPolarSinusoidal">Flat Polar Sinusoidal</option>
+                            <option value="foucaut">Foucaut</option>
+                            <option value="ginzburg4">Ginzburg IV</option>
+                            <option value="ginzburg5">Ginzburg V</option>
+                            <option value="ginzburg6">Ginzburg VI</option>
+                            <option value="ginzburg8">Ginzburg VIII</option>
+                            <option value="ginzburg9">Ginzburg IX</option>
+                            <option value="homolosine">Goode Homolosine</option>
+                            <option value="hammer">Hammer</option>
+                            <option value="hatano">Hatano</option>
+                            <option value="healpix">HEALPix</option>
+                            <option value="hill">Hill Eucyclic</option>
+                            <option value="kavrayskiy7">Kavrayskiy VII</option>
+                            <option value="lagrange">Lagrange</option>
+                            <option value="larrivee">l'Arrivée</option>
+                            <option value="laskowski">Laskowski Tri-Optimal</option>
+                            <option value="loximuthal">Loximuthal</option>
+                            <option value="mercator">Mercator</option>
+                            <option value="miller">Miller</option>
+                            <option value="mollweide">Mollweide</option>
+                            <option value="naturalEarth">Natural Earth</option>
+                            <option value="nellHammer">Nell Hammer</option>
+                            <option value="orthographic">Orthographic (hemi)</option>
+                            <option value="patterson">Patterson Cylindrical</option>
+                            <option value="polyconic">Polyconic</option>
+                            <option value="quincuncial">Quincuncial</option>
+                            <option value="rectangularPolyconic">Rectangular Polyconic</option>
+                            <option value="robinson">Robinson</option>
+                            <option value="sinusoidal">Sinusoidal</option>
+                            <option value="stereographic">Stereographic (hemi)</option>
+                            <option value="times">Times</option>
+                            <option value="twoPointEquidistant">Two-Point Equidistant (hemi)</option>
+                            <option value="vanDerGrinten">van Der Grinten</option>
+                            <option value="vanDerGrinten2">van Der Grinten II</option>
+                            <option value="vanDerGrinten3">van Der Grinten III</option>
+                            <option value="vanDerGrinten4">van Der Grinten IV</option>
+                            <option value="wagner4">Wagner IV</option>
+                            <option value="wagner6">Wagner VI</option>
+                            <option value="wagner7">Wagner VII</option>
+                            <option value="wiechel">Wiechel (hemi)</option>
+                            <option value="winkel3">Winkel Tripel</option>
+                        </select><label title="Coordinate space in which the map is displayed"
+                            for="transform">Coordinates</label><select id="transform">
+                            <option value="equatorial">Equatorial</option>
+                            <option value="ecliptic">Ecliptic</option>
+                            <option value="galactic">Galactic</option>
+                            <option value="supergalactic">Supergalactic</option>
+                        </select><br><label title="Center coordinates long/lat in selected coordinate space"
+                            for="centerx">Center</label><input type="number" id="centerx"
+                            title="Center right ascension/longitude" max="24" min="0" step="0.1"><span
+                            id="cxunit">h</span><input type="number" id="centery" title="Center declination/latitude"
+                            max="90" min="-90" step="0.1"><span>°</span><label title="Orientation"
+                            for="centerz">Orientation</label><input type="number" id="centerz"
+                            title="Center orientation" max="180" min="-180" step="0.1"><span>°</span><label
+                            for="orientationfixed" class="advanced" style="display: inline-block;">Fixed</label><input
+                            type="checkbox" id="orientationfixed" class="advanced" style="display: inline-block;"><label
+                            title="Center and zoom in on this constellation" for="constellation">Show</label><select
+                            id="constellation">
+                            <option value="---">(Select constellation)</option>
+                            <option value="And">And</option>
+                            <option value="Ant">Ant</option>
+                            <option value="Aps">Aps</option>
+                            <option value="Aqr">Aqr</option>
+                            <option value="Aql">Aql</option>
+                            <option value="Ara">Ara</option>
+                            <option value="Ari">Ari</option>
+                            <option value="Aur">Aur</option>
+                            <option value="Boo">Boo</option>
+                            <option value="Cae">Cae</option>
+                            <option value="Cam">Cam</option>
+                            <option value="Cnc">Cnc</option>
+                            <option value="CVn">CVn</option>
+                            <option value="CMa">CMa</option>
+                            <option value="CMi">CMi</option>
+                            <option value="Cap">Cap</option>
+                            <option value="Car">Car</option>
+                            <option value="Cas">Cas</option>
+                            <option value="Cen">Cen</option>
+                            <option value="Cep">Cep</option>
+                            <option value="Cet">Cet</option>
+                            <option value="Cha">Cha</option>
+                            <option value="Cir">Cir</option>
+                            <option value="Col">Col</option>
+                            <option value="Com">Com</option>
+                            <option value="CrA">CrA</option>
+                            <option value="CrB">CrB</option>
+                            <option value="Crv">Crv</option>
+                            <option value="Crt">Crt</option>
+                            <option value="Cru">Cru</option>
+                            <option value="Cyg">Cyg</option>
+                            <option value="Del">Del</option>
+                            <option value="Dor">Dor</option>
+                            <option value="Dra">Dra</option>
+                            <option value="Equ">Equ</option>
+                            <option value="Eri">Eri</option>
+                            <option value="For">For</option>
+                            <option value="Gem">Gem</option>
+                            <option value="Gru">Gru</option>
+                            <option value="Her">Her</option>
+                            <option value="Hor">Hor</option>
+                            <option value="Hya">Hya</option>
+                            <option value="Hyi">Hyi</option>
+                            <option value="Ind">Ind</option>
+                            <option value="Lac">Lac</option>
+                            <option value="Leo">Leo</option>
+                            <option value="LMi">LMi</option>
+                            <option value="Lep">Lep</option>
+                            <option value="Lib">Lib</option>
+                            <option value="Lup">Lup</option>
+                            <option value="Lyn">Lyn</option>
+                            <option value="Lyr">Lyr</option>
+                            <option value="Men">Men</option>
+                            <option value="Mic">Mic</option>
+                            <option value="Mon">Mon</option>
+                            <option value="Mus">Mus</option>
+                            <option value="Nor">Nor</option>
+                            <option value="Oct">Oct</option>
+                            <option value="Oph">Oph</option>
+                            <option value="Ori">Ori</option>
+                            <option value="Pav">Pav</option>
+                            <option value="Peg">Peg</option>
+                            <option value="Per">Per</option>
+                            <option value="Phe">Phe</option>
+                            <option value="Pic">Pic</option>
+                            <option value="Psc">Psc</option>
+                            <option value="PsA">PsA</option>
+                            <option value="Pup">Pup</option>
+                            <option value="Pyx">Pyx</option>
+                            <option value="Ret">Ret</option>
+                            <option value="Sge">Sge</option>
+                            <option value="Sgr">Sgr</option>
+                            <option value="Sco">Sco</option>
+                            <option value="Scl">Scl</option>
+                            <option value="Sct">Sct</option>
+                            <option value="Ser">Ser</option>
+                            <option value="Ser">Ser</option>
+                            <option value="Sex">Sex</option>
+                            <option value="Tau">Tau</option>
+                            <option value="Tel">Tel</option>
+                            <option value="Tri">Tri</option>
+                            <option value="TrA">TrA</option>
+                            <option value="Tuc">Tuc</option>
+                            <option value="UMa">UMa</option>
+                            <option value="UMi">UMi</option>
+                            <option value="Vel">Vel</option>
+                            <option value="Vir">Vir</option>
+                            <option value="Vol">Vol</option>
+                            <option value="Vul">Vul</option>
+                        </select></div>
+                    <div class="col" id="stars" style="display: block;"><label class="header"
+                            for="stars-show">Stars</label><input type="checkbox" id="stars-show"><label
+                            for="stars-limit" style="color: rgb(153, 153, 153);">down to magnitude</label><input
+                            type="number" id="stars-limit" title="Star display limit (magnitude)" value="6" max="6"
+                            min="-1" step="0.1" style="color: rgb(153, 153, 153);" disabled=""><label for="stars-colors"
+                            style="color: rgb(153, 153, 153);">with spectral colors</label><input type="checkbox"
+                            id="stars-colors" style="color: rgb(153, 153, 153);" disabled=""><label for="stars-color"
+                            style="color: rgb(153, 153, 153);">or default color </label><input type="color"
+                            autocomplete="off" id="stars-style-fill" title="Star color"
+                            style="color: rgb(153, 153, 153);" disabled=""><br><label
+                            for="stars-designation">Show</label><label title="Type of star name" id="label-propername"
+                            for="stars-designationType"
+                            style="color: rgb(153, 153, 153); display: none;"></label><select id="stars-designationType"
+                            class="" style="color: rgb(153, 153, 153);" disabled="">
+                            <option value="desig">Designation</option>
+                            <option value="bayer">Bayer</option>
+                            <option value="flam">Flamsteed</option>
+                            <option value="var">Variable</option>
+                            <option value="gl">Gliese</option>
+                            <option value="hd">Draper</option>
+                            <option value="hip">Hipparcos</option>
+                        </select><input type="checkbox" id="stars-designation" style="color: rgb(153, 153, 153);"
+                            disabled=""><label for="stars-designationLimit" style="color: rgb(153, 153, 153);">down to
+                            mag</label><input type="number" id="stars-designationLimit"
+                            title="Star name display limit (magnitude)" value="2.5" max="6" min="-1" step="0.1"
+                            style="color: rgb(153, 153, 153);" disabled=""><label
+                            for="stars-propername">Show</label><label title="Type of star name" id="label-propername"
+                            for="stars-propernameType" style="color: rgb(153, 153, 153); display: none;">proper
+                            names</label><select id="stars-propernameType" class="advanced"
+                            style="color: rgb(153, 153, 153); display: inline-block;" disabled="">
+                            <option value="name">IAU Name</option>
+                            <option value="ar">Arabic</option>
+                            <option value="zh">Chinese</option>
+                            <option value="en">English</option>
+                            <option value="fi">Finnish</option>
+                            <option value="fr">French</option>
+                            <option value="de">German</option>
+                            <option value="el">Greek</option>
+                            <option value="he">Hebrew</option>
+                            <option value="hi">Hindi</option>
+                            <option value="it">Italian</option>
+                            <option value="ja">Japanese</option>
+                            <option value="ko">Korean</option>
+                            <option value="la">Latin</option>
+                            <option value="fa">Persian</option>
+                            <option value="ru">Russian</option>
+                            <option value="es">Spanish</option>
+                            <option value="tr">Turkish</option>
+                        </select><input type="checkbox" id="stars-propername" style="color: rgb(153, 153, 153);"
+                            disabled=""><label for="stars-propernameLimit" style="color: rgb(153, 153, 153);">down to
+                            mag</label><input type="number" id="stars-propernameLimit"
+                            title="Star name display limit (magnitude)" value="1.5" max="6" min="-1" step="0.1"
+                            style="color: rgb(153, 153, 153);" disabled=""><br><label for="stars-size" class="advanced"
+                            style="color: rgb(153, 153, 153); display: inline-block;">Stellar disk size:
+                            base</label><input type="number" id="stars-size" class="advanced"
+                            title="Size of the displayed star disk; base" value="7" max="100" min="0" step="0.1"
+                            style="color: rgb(153, 153, 153); display: inline-block;" disabled=""><label
+                            for="stars-exponent" class="advanced"
+                            style="color: rgb(153, 153, 153); display: inline-block;"> * e ^ (exponent</label><input
+                            type="number" id="stars-exponent" class="advanced"
+                            title="Size of the displayed star disk; exponent" value="-0.28" max="3" min="-1" step="0.01"
+                            style="color: rgb(153, 153, 153); display: inline-block;" disabled=""><span class="advanced"
+                            style="display: inline-block;"> * (magnitude + 2)) [* adaptation]</span></div>
+                    <div class="col" id="dsos" style="display: block;"><label class="header" title="Deep Space Objects"
+                            for="dsos-show">DSOs</label><input type="checkbox" id="dsos-show"><label for="dsos-limit"
+                            style="color: rgb(0, 0, 0);">down to mag</label><input type="number" id="dsos-limit"
+                            title="DSO display limit (magnitude)" value="6" max="6" min="0" step="0.1"
+                            style="color: rgb(0, 0, 0);"><label for="dsos-colors" style="color: rgb(0, 0, 0);">with
+                            symbol colors</label><input type="checkbox" id="dsos-colors"
+                            style="color: rgb(0, 0, 0);"><label for="dsos-color" style="color: rgb(0, 0, 0);">or default
+                            color </label><input type="color" autocomplete="off" id="dsos-style-fill" title="DSO color"
+                            style="color: rgb(0, 0, 0);"><br><label for="dsos-names">Show</label><label
+                            title="Type of DSO name" for="dsos-namesType" class="advanced"
+                            style="color: rgb(0, 0, 0); display: inline-block;"></label><select id="dsos-namesType"
+                            class="advanced" style="color: rgb(0, 0, 0); display: inline-block;">
+                            <option value="desig">Designation</option>
+                            <option value="name">English</option>
+                            <option value="ar">Arabic</option>
+                            <option value="zh">Chinese</option>
+                            <option value="fi">Finnish</option>
+                            <option value="fr">French</option>
+                            <option value="de">German</option>
+                            <option value="el">Greek</option>
+                            <option value="hi">Hindi</option>
+                            <option value="it">Italian</option>
+                            <option value="ja">Japanese</option>
+                            <option value="ko">Korean</option>
+                            <option value="la">Latin</option>
+                            <option value="fa">Persian</option>
+                            <option value="ru">Russian</option>
+                            <option value="es">Spanish</option>
+                            <option value="tr">Turkish</option>
+                        </select><label for="dsos-names" style="color: rgb(0, 0, 0);">names</label><input
+                            type="checkbox" id="dsos-names" style="color: rgb(0, 0, 0);"><label for="dsos-nameLimit"
+                            style="color: rgb(0, 0, 0);">down to mag</label><input type="number" id="dsos-nameLimit"
+                            title="DSO name display limit (magnitude)" value="4" max="6" min="0" step="0.1"
+                            style="color: rgb(0, 0, 0);"><br><label for="dsos-size" class="advanced"
+                            style="color: rgb(0, 0, 0); display: inline-block;">DSO symbol size: (base</label><input
+                            type="number" id="dsos-size" class="advanced" title="Size of the displayed symbol: base"
+                            max="100" min="0" step="0.1" style="color: rgb(0, 0, 0); display: inline-block;"><label
+                            for="dsos-exponent" class="advanced" style="color: rgb(0, 0, 0); display: inline-block;"> *
+                            2 [* adaptation] - magnitude) ^ exponent</label><input type="number" id="dsos-exponent"
+                            class="advanced" title="Size of the displayed symbol; exponent" value="1.4" max="3" min="-1"
+                            step="0.01" style="color: rgb(0, 0, 0); display: inline-block;"></div>
+                    <div class="col" id="constellations" style="display: block;"><label
+                            class="header">Constellations</label><label for="constellations-names">Show</label><label
+                            title="Language of constellation names" for="constellations-namesType" class="advanced"
+                            style="color: rgb(0, 0, 0); display: inline-block;"></label><select
+                            id="constellations-namesType" class="advanced"
+                            style="color: rgb(0, 0, 0); display: inline-block;">
+                            <option value="desig">Designation</option>
+                            <option value="name">IAU Name</option>
+                            <option value="ar">Arabic</option>
+                            <option value="zh">Chinese</option>
+                            <option value="cz">Czech</option>
+                            <option value="en">English</option>
+                            <option value="ee">Estonian</option>
+                            <option value="fi">Finnish</option>
+                            <option value="fr">French</option>
+                            <option value="de">German</option>
+                            <option value="el">Greek</option>
+                            <option value="he">Hebrew</option>
+                            <option value="hi">Hindi</option>
+                            <option value="it">Italian</option>
+                            <option value="ja">Japanese</option>
+                            <option value="sw">Kiswahili</option>
+                            <option value="ko">Korean</option>
+                            <option value="la">Latin</option>
+                            <option value="fa">Persian</option>
+                            <option value="ru">Russian</option>
+                            <option value="es">Spanish</option>
+                            <option value="tr">Turkish</option>
+                        </select><label for="constellations-names">names</label><input type="checkbox"
+                            id="constellations-names"><label for="constellations-lines"> lines</label><input
+                            type="checkbox" id="constellations-lines"><label for="constellations-bounds">
+                            boundaries</label><input type="checkbox" id="constellations-bounds"></div>
+                    <div class="col" id="lines" style="display: block;"><label class="header">Lines</label><label
+                            title="Latitude/longitude grid lines" for="lines-graticule">Graticule</label><input
+                            type="checkbox" id="lines-graticule-show"><label
+                            for="lines-equatorial">Equator</label><input type="checkbox"
+                            id="lines-equatorial-show"><label for="lines-ecliptic">Ecliptic</label><input
+                            type="checkbox" id="lines-ecliptic-show"><label for="lines-galactic">Galactic
+                            plane</label><input type="checkbox" id="lines-galactic-show"><label
+                            for="lines-supergalactic">Supergalactic plane</label><input type="checkbox"
+                            id="lines-supergalactic-show"></div>
+                    <div class="col" id="other" style="display: block;"><label class="header">Other</label><label
+                            for="mw-show">Milky Way</label><input type="checkbox" id="mw-show"><label
+                            for="mw-style-fill" class="advanced" style="display: inline-block;"> color</label><input
+                            type="color" id="mw-style-fill" class="advanced" title="Milky Way color" value="#ffffff"
+                            style="display: inline-block;"><label for="mw-style-opacity" class="advanced"
+                            style="display: inline-block;"> opacity</label><input type="number" id="mw-style-opacity"
+                            class="advanced" title="Transparency of each Milky Way layer" value="0.15" max="1" min="0"
+                            step="0.01" style="display: inline-block;"><label for="advanced">Advanced
+                            options</label><input type="checkbox" id="advanced"><br><label
+                            for="background-fill">Background color</label><input type="color" id="background-fill"
+                            title="Background color" value="#000000"><label for="background-opacity" class="advanced"
+                            style="display: inline-block;">opacity</label><input type="number" id="background-opacity"
+                            class="advanced" title="Background opacity" value="1" max="1" min="0" step="0.01"
+                            style="display: inline-block;"><label
+                            title="Star/DSO sizes are increased with higher zoom-levels" for="adaptable"
+                            class="advanced" style="display: inline-block;">Adaptable object sizes</label><input
+                            type="checkbox" id="adaptable" class="advanced" style="display: inline-block;"><label
+                            title="General language setting" for="lang">Object names </label><select id="lang">
+                            <option value="---">(Select language)</option>
+                            <option value="desig">Designation</option>
+                            <option value="name">IAU Name</option>
+                            <option value="ar">Arabic</option>
+                            <option value="zh">Chinese</option>
+                            <option value="cz">Czech</option>
+                            <option value="en">English</option>
+                            <option value="ee">Estonian</option>
+                            <option value="fi">Finnish</option>
+                            <option value="fr">French</option>
+                            <option value="de">German</option>
+                            <option value="el">Greek</option>
+                            <option value="he">Hebrew</option>
+                            <option value="hi">Hindi</option>
+                            <option value="it">Italian</option>
+                            <option value="ja">Japanese</option>
+                            <option value="sw">Kiswahili</option>
+                            <option value="ko">Korean</option>
+                            <option value="la">Latin</option>
+                            <option value="fa">Persian</option>
+                            <option value="ru">Russian</option>
+                            <option value="es">Spanish</option>
+                            <option value="tr">Turkish</option>
+                        </select></div>
+                    <div class="col" id="download" style="display: block;"><label class="header">Download</label><input
+                            type="button" id="download-png" value="PNG Image"><input type="button" id="download-svg"
+                            value="SVG File"></div>
+                </form>
+            </div>
         </div>
     </div>
+    <script type="text/javascript">
+        var config = {
+            projection: "orthographic",
+            //interactive: false,
+            background: { fill: "#000000", stroke: "#000000", opacity: 1, width: 4 },
+            datapath: "https://ofrohn.github.io/data/",
+            stars: { show: false },
+            dsos: { show: false },
+            interactive: false,
+            mw: { style: { fill: "#ffffff", opacity: "0.05" } },
+            constellations: { names: false, lines: false },
+            lines: {
+                graticule: { show: true, stroke: "#9999cc", width: 1.0, opacity: .3 },
+                equatorial: { show: true, stroke: "#aaaaaa", width: 1.5, opacity: .4 },
+                ecliptic: { show: true, stroke: "#66cc66", width: 1.5, opacity: .4 }
+            }
+        };
+
+        var planets = { sol: "#ff0", lun: "#fff", mer: "#e2e2e2", ven: "#f5f5f0", mar: "#efd1af", jup: "#e6e1df", sat: "#eddebc" };
+
+        // Asterisms canvas style properties for lines and text
+        var limitMagnitude = 6,
+            radius = 1.2,
+            grayscale = false,
+            starColor = d3.scale.linear()
+                .domain([-1.5, 0, limitMagnitude + 1])
+                .range(['white', 'white', 'black']),
+            dt = new Date();
+
+
+        Celestial.add({
+            type: "json",
+            file: "https://ofrohn.github.io/data/stars." + limitMagnitude + ".json",
+
+            callback: function (error, json) {
+
+                if (error) return console.warn(error);
+                // Load the geoJSON file and transform to correct coordinate system, if necessary
+                var stars = Celestial.getData(json, config.transform);
+
+                // Add to celestiasl objects container in d3
+                Celestial.container.selectAll(".astars")
+                    .data(stars.features)
+                    .enter().append("path")
+                    .attr("class", "astar");
+                // Trigger redraw to display changes
+                Celestial.redraw();
+            },
+
+            redraw: function () {
+                Celestial.context.globalAlpha = 1;
+                // Default color for grayscale
+                var indexColor = "#fff",
+                    planet;
+
+                // Select the added objects by class name as given previously
+                Celestial.container.selectAll(".astar").each(function (d) {
+                    // If point is visible (this doesn't work automatically for points)
+                    if (Celestial.clip(d.geometry.coordinates)) {
+                        // get point coordinates
+                        var pt = Celestial.mapProjection(d.geometry.coordinates);
+
+                        // draw on canvas
+                        // if not grayscale get the stars color from its b-v index
+                        if (grayscale === false) indexColor = Celestial.starColor(d);
+                        // Set color range to the stars color 
+                        starColor.range([indexColor, indexColor, 'black']);
+                        // Set object color
+                        Celestial.context.fillStyle = starColor(d.properties.mag);
+                        // Start the drawing path
+                        Celestial.context.beginPath();
+                        // Thats a circle in html5 canvas
+                        Celestial.context.arc(pt[0], pt[1], radius, 0, 2 * Math.PI);
+                        // Finish the drawing path
+                        Celestial.context.closePath();
+                        // Fill the object path with the prevoiusly set fill color
+                        Celestial.context.fill();
+
+                    }
+
+                });
+                if (!Celestial.origin) return;
+                var o = Celestial.origin(dt).spherical();
+                for (var key in planets) {
+                    var planet = Celestial.getPlanet(key, dt);
+                    if (!Celestial.clip(planet.ephemeris.pos)) continue;
+                    var pt = Celestial.mapProjection(planet.ephemeris.pos);
+                    if (key === "lun") {
+                        Celestial.symbol().type("crescent").size(110).age(planet.ephemeris.age).position(pt)(Celestial.context);
+                    } else {
+                        if (key === "sol") radius = 2;
+                        else radius = 1.2 - (planet.ephemeris.mag + 5) / 10;
+                        Celestial.context.fillStyle = (grayscale === false) ? planets[key] : "#eee";
+                        // Start the drawing path
+                        Celestial.context.beginPath();
+                        // draw circle on canvas
+                        Celestial.context.arc(pt[0], pt[1], radius * 2, 0, 2 * Math.PI);
+                        // Finish the drawing path
+                        Celestial.context.closePath();
+                        // Fill the object path with the prevoiusly set fill color
+                        Celestial.context.fill();
+                    }
+                }
+            }
+        });
+
+        d3.select("#btnColor").on("click", function (d) {
+            grayscale = !grayscale;
+            this.innerHTML = grayscale === true ? "Show Colors" : "Show Grayscale";
+            Celestial.redraw();
+        });
+
+        Celestial.display(config);
+        Celestial.date(dt);
+    </script>
 </body>
+
 </html>

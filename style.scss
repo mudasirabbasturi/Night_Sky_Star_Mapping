@@ -1,3 +1,54 @@
 *{
     box-sizing: border-box;
 }
+
+body {
+    padding: 0;
+    margin: 0;
+}
+.star_editor {
+    width: 100%;
+    overflow: hidden;
+    .wrapper {
+        height: 100vh;
+        display: flex;
+        .main {
+            flex-grow: 1;
+            background-color: #e0e0e0;
+            position: relative;
+            .map_box {
+                position: absolute;
+                width: 50%;
+                height: 65%;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                margin: auto;
+
+                .map {
+                    border: 1px solid #000000;
+                    // width: 84%;
+                    // height: 63%;
+                    // margin-top: 3.3%;
+                    // margin-left: auto;
+                    // margin-right: auto;
+                }
+                .text {
+                    // width: 84%;
+                    // height: 20%;
+                    // margin-left: auto;
+                    // margin-right: auto;
+                    // margin-top: 3.3%;
+                }
+            }
+        }
+        .sidebar {
+            min-width: 420px;
+            max-width: 420px;
+            background-color: #fff;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,.1);
+        }
+    } 
+}
